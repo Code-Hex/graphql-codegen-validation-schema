@@ -5,13 +5,15 @@ export type ValidationSchema = 'yup' | 'zod' | 'myzod' | 'valibot';
 export type ValidationSchemaExportType = 'function' | 'const';
 
 export interface DirectiveConfig {
-  [directive: string]: {
-    [argument: string]: string | string[] | DirectiveObjectArguments
-  }
+  [directive: string]: SingleDirectiveConfig | string | ((args: Record<string, any>) => string)
+}
+
+export interface SingleDirectiveConfig {
+  [argument: string]: string | string[] | DirectiveObjectArguments | ((argValue: any) => string)
 }
 
 export interface DirectiveObjectArguments {
-  [matched: string]: string | string[]
+  [matched: string]: string | string[] | (() => string)
 }
 
 interface ScalarSchemas {

@@ -1,10 +1,10 @@
 import type { PluginFunction, Types } from '@graphql-codegen/plugin-helpers';
 import type { GraphQLSchema } from 'graphql';
+import { transformSchemaAST } from '@graphql-codegen/schema-ast';
+import { buildSchema, printSchema, visit } from 'graphql';
 import type { ValidationSchemaPluginConfig } from './config.js';
 import type { SchemaVisitor } from './types.js';
 
-import { transformSchemaAST } from '@graphql-codegen/schema-ast';
-import { buildSchema, printSchema, visit } from 'graphql';
 import { isGeneratedByIntrospection, topologicalSortAST } from './graphql.js';
 import { MyZodSchemaVisitor } from './myzod/index.js';
 import { ValibotSchemaVisitor } from './valibot/index.js';

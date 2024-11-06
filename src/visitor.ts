@@ -5,12 +5,12 @@ import type {
   NameNode,
   ObjectTypeDefinitionNode,
 } from 'graphql';
-import type { ValidationSchemaPluginConfig } from './config.js';
 import { TsVisitor } from '@graphql-codegen/typescript';
 
 import {
   specifiedScalarTypes,
 } from 'graphql';
+import type { ValidationSchemaPluginConfig } from './config.js';
 
 export class Visitor extends TsVisitor {
   constructor(

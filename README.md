@@ -248,6 +248,8 @@ generates:
         # directive:
         #   arg1: schemaApi
         #   arg2: ["schemaApi2", "Hello $1"]
+        # OR
+        # directive: schemaApi
         #
         # See more examples in `./tests/directive.spec.ts`
         # https://github.com/Code-Hex/graphql-codegen-typescript-validation-schema/blob/main/tests/directive.spec.ts
@@ -290,6 +292,8 @@ generates:
         # directive:
         #   arg1: schemaApi
         #   arg2: ["schemaApi2", "Hello $1"]
+        # OR
+        # directive: schemaApi
         #
         # See more examples in `./tests/directive.spec.ts`
         # https://github.com/Code-Hex/graphql-codegen-typescript-validation-schema/blob/main/tests/directive.spec.ts
@@ -318,9 +322,60 @@ export function ExampleInputSchema(): z.ZodSchema<ExampleInput> {
 
 Please see [example](https://github.com/Code-Hex/graphql-codegen-typescript-validation-schema/tree/main/example) directory.
 
+#### Custom mapping functions
+
+If you are using TS config you can define your own custom mapping for directives. The function will receive the arguments of the directive as an object and should return a string that will be appended to the schema.
+
+```ts
+const config: CodegenConfig = {
+  schema: 'http://localhost:4000/graphql',
+  documents: ['src/**/*.tsx'],
+  generates: {
+      plugins: ['typescript', 'typescript-validation-schema'],
+      config: {
+          schema: 'zod',
+            directives: {
+                between: (args) => `.refine(v => v >= ${args.min} && v <= ${args.max})`,
+            },
+      }
+  }
+}
+```
+
+Additionally, you can define custom mapping functions for each argument, or even each argument value separately.
+
+```ts
+const config: CodegenConfig = {
+  schema: 'http://localhost:4000/graphql',
+  documents: ['src/**/*.tsx'],
+  generates: {
+      plugins: ['typescript', 'typescript-validation-schema'],
+      config: {
+          schema: 'zod',
+            directives: {
+                // @unique()
+                unique: () => `.refine(items => new Set(items).size === items.length)`,
+                
+                // @array(unique: true)
+                array: {
+                    unique: (value) => value ? `.refine(items => new Set(items).size === items.length)` : ``,
+                },
+                
+                // @constraint(array: "UNIQUE")
+                constraint: {
+                    array: {
+                        UNIQUE: () => `.refine(items => new Set(items).size === items.length)`,
+                    }
+                },
+            },
+      }
+  }
+}
+```
+
 ## Notes
 
-Their is currently a compatibility issue with the client-preset. A workaround for this is to split the generation into two (one for client-preset and one for typescript-validation-schema).
+There is currently a compatibility issue with the client-preset. A workaround for this is to split the generation into two (one for client-preset and one for typescript-validation-schema).
 
 ```yml
 generates:

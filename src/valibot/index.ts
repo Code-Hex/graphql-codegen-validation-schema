@@ -10,18 +10,18 @@ import type {
   TypeNode,
   UnionTypeDefinitionNode,
 } from 'graphql';
+import { DeclarationBlock, indent } from '@graphql-codegen/visitor-plugin-common';
 import type { ValidationSchemaPluginConfig } from '../config.js';
 
 import type { Visitor } from '../visitor.js';
-import { DeclarationBlock, indent } from '@graphql-codegen/visitor-plugin-common';
-import { buildApiForValibot, formatDirectiveConfig } from '../directive.js';
+import { buildApiForValibot } from '../directive.js';
 import {
   InterfaceTypeDefinitionBuilder,
+  ObjectTypeDefinitionBuilder,
   isInput,
   isListType,
   isNamedType,
   isNonNullType,
-  ObjectTypeDefinitionBuilder,
 } from '../graphql.js';
 import { BaseSchemaVisitor } from '../schema_visitor.js';
 
@@ -225,7 +225,7 @@ function generateFieldTypeValibotSchema(config: ValidationSchemaPluginConfig, vi
     const actions = actionsFromDirectives(config, field);
 
     if (isNonNullType(parentType))
-      return pipeSchemaAndActions(gen, actions); ;
+      return pipeSchemaAndActions(gen, actions);
 
     return `v.nullish(${pipeSchemaAndActions(gen, actions)})`;
   }
@@ -235,8 +235,7 @@ function generateFieldTypeValibotSchema(config: ValidationSchemaPluginConfig, vi
 
 function actionsFromDirectives(config: ValidationSchemaPluginConfig, field: InputValueDefinitionNode | FieldDefinitionNode): string[] {
   if (config.directives && field.directives) {
-    const formatted = formatDirectiveConfig(config.directives);
-    return buildApiForValibot(formatted, field.directives);
+    return buildApiForValibot(config.directives, field.directives);
   }
 
   return [];

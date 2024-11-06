@@ -10,23 +10,23 @@ import type {
   TypeNode,
   UnionTypeDefinitionNode,
 } from 'graphql';
-import type { ValidationSchemaPluginConfig } from '../config.js';
-import type { Visitor } from '../visitor.js';
 
 import { resolveExternalModuleAndFn } from '@graphql-codegen/plugin-helpers';
-import { convertNameParts, DeclarationBlock, indent } from '@graphql-codegen/visitor-plugin-common';
+import { DeclarationBlock, convertNameParts, indent } from '@graphql-codegen/visitor-plugin-common';
 import {
   Kind,
 } from 'graphql';
-import { buildApi, formatDirectiveConfig } from '../directive.js';
+import type { Visitor } from '../visitor.js';
+import type { ValidationSchemaPluginConfig } from '../config.js';
+import { buildApi } from '../directive.js';
 import {
-  escapeGraphQLCharacters,
   InterfaceTypeDefinitionBuilder,
+  ObjectTypeDefinitionBuilder,
+  escapeGraphQLCharacters,
   isInput,
   isListType,
   isNamedType,
   isNonNullType,
-  ObjectTypeDefinitionBuilder,
 } from '../graphql.js';
 import { BaseSchemaVisitor } from '../schema_visitor.js';
 
@@ -336,8 +336,7 @@ function generateFieldTypeZodSchema(config: ValidationSchemaPluginConfig, visito
 
 function applyDirectives(config: ValidationSchemaPluginConfig, field: InputValueDefinitionNode | FieldDefinitionNode, gen: string): string {
   if (config.directives && field.directives) {
-    const formatted = formatDirectiveConfig(config.directives);
-    return gen + buildApi(formatted, field.directives);
+    return gen + buildApi(config.directives, field.directives);
   }
   return gen;
 }

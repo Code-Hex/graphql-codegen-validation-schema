@@ -1,18 +1,16 @@
-import type { ConstArgumentNode, ConstDirectiveNode, ConstValueNode, NameNode } from 'graphql';
-import type { DirectiveConfig, DirectiveObjectArguments } from '../src/config';
-
 import type {
-  FormattedDirectiveArguments,
-  FormattedDirectiveConfig,
-  FormattedDirectiveObjectArguments,
-} from '../src/directive';
+  ConstArgumentNode,
+  ConstDirectiveNode,
+  ConstValueNode,
+  NameNode,
+} from 'graphql';
+
 import { Kind, parseConstValue } from 'graphql';
+import type { DirectiveConfig, DirectiveObjectArguments, SingleDirectiveConfig } from '../src/config';
 import {
   buildApi,
   buildApiForValibot,
   exportedForTesting,
-  formatDirectiveConfig,
-  formatDirectiveObjectArguments,
 } from '../src/directive';
 
 const { applyArgToApiSchemaTemplate, buildApiFromDirectiveObjectArguments, buildApiFromDirectiveArguments }
@@ -44,112 +42,6 @@ function buildConstDirectiveNodes(name: string, args: Record<string, string>): C
 }
 
 describe('format directive config', () => {
-  describe('formatDirectiveObjectArguments', () => {
-    const cases: {
-      name: string
-      arg: DirectiveObjectArguments
-      want: FormattedDirectiveObjectArguments
-    }[] = [
-      {
-        name: 'normal',
-        arg: {
-          uri: 'url',
-          email: 'email',
-        },
-        want: {
-          uri: ['url', '$2'],
-          email: ['email', '$2'],
-        },
-      },
-      {
-        name: 'contains array',
-        arg: {
-          startWith: ['matches', '/^$2/'],
-          email: 'email',
-        },
-        want: {
-          startWith: ['matches', '/^$2/'],
-          email: ['email', '$2'],
-        },
-      },
-    ];
-    for (const tc of cases) {
-      it(tc.name, () => {
-        const got = formatDirectiveObjectArguments(tc.arg);
-        expect(got).toStrictEqual(tc.want);
-      });
-    }
-  });
-
-  describe('formatDirectiveConfig', () => {
-    const cases: {
-      name: string
-      arg: DirectiveConfig
-      want: FormattedDirectiveConfig
-    }[] = [
-      {
-        name: 'normal',
-        arg: {
-          required: {
-            msg: 'required',
-          },
-          constraint: {
-            minLength: 'min',
-            format: {
-              uri: 'url',
-              email: 'email',
-            },
-          },
-        },
-        want: {
-          required: {
-            msg: ['required', '$1'],
-          },
-          constraint: {
-            minLength: ['min', '$1'],
-            format: {
-              uri: ['url', '$2'],
-              email: ['email', '$2'],
-            },
-          },
-        },
-      },
-      {
-        name: 'complex',
-        arg: {
-          required: {
-            msg: 'required',
-          },
-          constraint: {
-            startWith: ['matches', '/^$1/g'],
-            format: {
-              uri: ['url', '$2'],
-              email: 'email',
-            },
-          },
-        },
-        want: {
-          required: {
-            msg: ['required', '$1'],
-          },
-          constraint: {
-            startWith: ['matches', '/^$1/g'],
-            format: {
-              uri: ['url', '$2'],
-              email: ['email', '$2'],
-            },
-          },
-        },
-      },
-    ];
-    for (const tc of cases) {
-      it(tc.name, () => {
-        const got = formatDirectiveConfig(tc.arg);
-        expect(got).toStrictEqual(tc.want);
-      });
-    }
-  });
-
   describe('applyArgToApiSchemaTemplate', () => {
     const cases: {
       name: string
@@ -301,11 +193,21 @@ describe('format directive config', () => {
     const cases: {
       name: string
       args: {
-        config: FormattedDirectiveObjectArguments
+        config: DirectiveObjectArguments
         argValue: ConstValueNode
       }
       want: string
     }[] = [
+      {
+        name: 'simple',
+        args: {
+          config: {
+            uri: 'url',
+          },
+          argValue: parseConstValue(`"uri"`),
+        },
+        want: `.url()`,
+      },
       {
         name: 'contains in config',
         args: {
@@ -336,6 +238,16 @@ describe('format directive config', () => {
         },
         want: ``,
       },
+      {
+        name: 'function',
+        args: {
+          config: {
+            UNIQUE: () => `.refine((items) => new Set(items).size === items.length])`,
+          },
+          argValue: parseConstValue(`UNIQUE`),
+        },
+        want: `.refine((items) => new Set(items).size === items.length])`,
+      },
     ];
     for (const tc of cases) {
       it(tc.name, () => {
@@ -350,11 +262,23 @@ describe('format directive config', () => {
     const cases: {
       name: string
       args: {
-        config: FormattedDirectiveArguments
+        config: SingleDirectiveConfig
         args: ReadonlyArray<ConstArgumentNode>
       }
       want: string
     }[] = [
+      {
+        name: 'simple',
+        args: {
+          config: {
+            msg: 'required',
+          },
+          args: buildConstArgumentNodes({
+            msg: `"hello"`,
+          }),
+        },
+        want: `.required("hello")`,
+      },
       {
         name: 'string',
         args: {
@@ -528,6 +452,18 @@ describe('format directive config', () => {
         },
         want: `.required("message")`,
       },
+      {
+        name: 'function',
+        args: {
+          config: {
+            max: value => `.refine(items => items.length <= ${value})`,
+          },
+          args: buildConstArgumentNodes({
+            max: `10`,
+          }),
+        },
+        want: `.refine(items => items.length <= 10)`,
+      },
     ];
     for (const tc of cases) {
       it(tc.name, () => {
@@ -542,7 +478,7 @@ describe('format directive config', () => {
     const cases: {
       name: string
       args: {
-        config: FormattedDirectiveConfig
+        config: DirectiveConfig
         args: ReadonlyArray<ConstDirectiveNode>
       }
       want: string
@@ -552,7 +488,7 @@ describe('format directive config', () => {
         args: {
           config: {
             required: {
-              msg: ['required', '$1'],
+              msg: 'required',
             },
             constraint: {
               minLength: ['min', '$1'],
@@ -577,6 +513,19 @@ describe('format directive config', () => {
         want: `.required("message").min(100).email()`,
       },
       {
+        name: 'simple',
+        args: {
+          config: {
+            required: 'required',
+          },
+          args: [
+            // @required()
+            buildConstDirectiveNodes('required', {}),
+          ],
+        },
+        want: `.required()`,
+      },
+      {
         name: 'enum',
         args: {
           config: {
@@ -595,6 +544,24 @@ describe('format directive config', () => {
         },
         want: `.uri()`,
       },
+      {
+        name: 'function',
+        args: {
+          config: {
+            between: (args) => {
+              return `.refine(arr => arr.length > ${args.min} && arr.length < ${args.max})`;
+            },
+          },
+          args: [
+            // @between(min: 1, max: 99)
+            buildConstDirectiveNodes('between', {
+              min: `1`,
+              max: `99`,
+            }),
+          ],
+        },
+        want: `.refine(arr => arr.length > 1 && arr.length < 99)`,
+      },
     ];
     for (const tc of cases) {
       it(tc.name, () => {
@@ -609,7 +576,7 @@ describe('format directive config', () => {
     const cases: {
       name: string
       args: {
-        config: FormattedDirectiveConfig
+        config: DirectiveConfig
         args: ReadonlyArray<ConstDirectiveNode>
       }
       want: string[]
@@ -622,7 +589,7 @@ describe('format directive config', () => {
               minLength: ['minLength', '$1'],
               format: {
                 uri: ['url'],
-                email: ['email'],
+                email: 'email',
               },
             },
           },
