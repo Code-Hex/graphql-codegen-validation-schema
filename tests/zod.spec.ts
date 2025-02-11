@@ -1056,7 +1056,7 @@ describe('zod', () => {
         export function BookSchema(): z.ZodObject<Properties<Book>> {
           return z.object({
             __typename: z.literal('Book').optional(),
-            author: AuthorSchema().nullish(),
+            author: z.lazy(() => AuthorSchema().nullish()),
             title: z.string().nullish()
           })
         }
@@ -1064,7 +1064,7 @@ describe('zod', () => {
         export function AuthorSchema(): z.ZodObject<Properties<Author>> {
           return z.object({
             __typename: z.literal('Author').optional(),
-            books: z.array(BookSchema().nullable()).nullish(),
+            books: z.array(z.lazy(() => BookSchema().nullable())).nullish(),
             name: z.string().nullish()
           })
         }
@@ -1301,7 +1301,7 @@ describe('zod', () => {
         export function GeometrySchema(): z.ZodObject<Properties<Geometry>> {
           return z.object({
             __typename: z.literal('Geometry').optional(),
-            shape: ShapeSchema().nullish()
+            shape: z.lazy(() => ShapeSchema().nullish())
           })
         }
         "
@@ -1422,7 +1422,7 @@ describe('zod', () => {
 
         export const GeometrySchema: z.ZodObject<Properties<Geometry>> = z.object({
             __typename: z.literal('Geometry').optional(),
-            shape: ShapeSchema.nullish()
+            shape: z.lazy(() => ShapeSchema.nullish())
         });
         "
       `)
@@ -1544,14 +1544,14 @@ describe('zod', () => {
           "
           export function BookSchema(): z.ZodObject<Properties<Book>> {
             return z.object({
-              author: AuthorSchema().nullish(),
+              author: z.lazy(() => AuthorSchema().nullish()),
               title: z.string().nullish()
             })
           }
 
           export function AuthorSchema(): z.ZodObject<Properties<Author>> {
             return z.object({
-              books: z.array(BookSchema().nullable()).nullish(),
+              books: z.array(z.lazy(() => BookSchema().nullable())).nullish(),
               name: z.string().nullish()
             })
           }
@@ -1597,7 +1597,7 @@ describe('zod', () => {
           export function BookSchema(): z.ZodObject<Properties<Book>> {
             return z.object({
               title: z.string(),
-              author: AuthorSchema()
+              author: z.lazy(() => AuthorSchema())
             })
           }
 
@@ -1605,7 +1605,7 @@ describe('zod', () => {
             return z.object({
               __typename: z.literal('Textbook').optional(),
               title: z.string(),
-              author: AuthorSchema(),
+              author: z.lazy(() => AuthorSchema()),
               courses: z.array(z.string())
             })
           }
@@ -1614,7 +1614,7 @@ describe('zod', () => {
             return z.object({
               __typename: z.literal('ColoringBook').optional(),
               title: z.string(),
-              author: AuthorSchema(),
+              author: z.lazy(() => AuthorSchema()),
               colors: z.array(z.string())
             })
           }
@@ -1622,7 +1622,7 @@ describe('zod', () => {
           export function AuthorSchema(): z.ZodObject<Properties<Author>> {
             return z.object({
               __typename: z.literal('Author').optional(),
-              books: z.array(BookSchema()).nullish(),
+              books: z.array(z.lazy(() => BookSchema())).nullish(),
               name: z.string().nullish()
             })
           }

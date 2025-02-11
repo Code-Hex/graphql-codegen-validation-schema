@@ -118,7 +118,7 @@ export function UserSchema(): v.GenericSchema<User> {
     createdAt: v.nullish(v.any()),
     email: v.nullish(v.string()),
     id: v.nullish(v.string()),
-    kind: v.nullish(UserKindSchema()),
+    kind: v.lazy(() => v.nullish(UserKindSchema())),
     name: v.nullish(v.string()),
     password: v.nullish(v.string()),
     updatedAt: v.nullish(v.any())

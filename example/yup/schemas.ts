@@ -124,7 +124,7 @@ export function UserSchema(): yup.ObjectSchema<User> {
     createdAt: yup.mixed().nullable().optional(),
     email: yup.string().defined().nullable().optional(),
     id: yup.string().defined().nullable().optional(),
-    kind: UserKindSchema().nullable().optional(),
+    kind: yup.lazy(() => UserKindSchema().nullable()).optional(),
     name: yup.string().defined().nullable().optional(),
     password: yup.string().defined().nullable().optional(),
     updatedAt: yup.mixed().nullable().optional()

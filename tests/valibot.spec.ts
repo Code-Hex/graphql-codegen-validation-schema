@@ -772,7 +772,7 @@ describe('valibot', () => {
           export function BookSchema(): v.GenericSchema<Book> {
             return v.object({
               __typename: v.optional(v.literal('Book')),
-              author: v.nullish(AuthorSchema()),
+              author: v.lazy(() => v.nullish(AuthorSchema())),
               title: v.nullish(v.string())
             })
           }
@@ -780,7 +780,7 @@ describe('valibot', () => {
           export function AuthorSchema(): v.GenericSchema<Author> {
             return v.object({
               __typename: v.optional(v.literal('Author')),
-              books: v.nullish(v.array(v.nullable(BookSchema()))),
+              books: v.nullish(v.array(v.lazy(() => v.nullable(BookSchema())))),
               name: v.nullish(v.string())
             })
           }
@@ -1019,7 +1019,7 @@ describe('valibot', () => {
       export function GeometrySchema(): v.GenericSchema<Geometry> {
         return v.object({
           __typename: v.optional(v.literal('Geometry')),
-          shape: v.nullish(ShapeSchema())
+          shape: v.lazy(() => v.nullish(ShapeSchema()))
         })
       }
       "
@@ -1209,14 +1209,14 @@ describe('valibot', () => {
 
         export function BookSchema(): v.GenericSchema<Book> {
           return v.object({
-            author: v.nullish(AuthorSchema()),
+            author: v.lazy(() => v.nullish(AuthorSchema())),
             title: v.nullish(v.string())
           })
         }
 
         export function AuthorSchema(): v.GenericSchema<Author> {
           return v.object({
-            books: v.nullish(v.array(v.nullable(BookSchema()))),
+            books: v.nullish(v.array(v.lazy(() => v.nullable(BookSchema())))),
             name: v.nullish(v.string())
           })
         }
@@ -1262,7 +1262,7 @@ describe('valibot', () => {
         export function BookSchema(): v.GenericSchema<Book> {
           return v.object({
             title: v.string(),
-            author: AuthorSchema()
+            author: v.lazy(() => AuthorSchema())
           })
         }
 
@@ -1270,7 +1270,7 @@ describe('valibot', () => {
           return v.object({
             __typename: v.optional(v.literal('Textbook')),
             title: v.string(),
-            author: AuthorSchema(),
+            author: v.lazy(() => AuthorSchema()),
             courses: v.array(v.string())
           })
         }
@@ -1279,7 +1279,7 @@ describe('valibot', () => {
           return v.object({
             __typename: v.optional(v.literal('ColoringBook')),
             title: v.string(),
-            author: AuthorSchema(),
+            author: v.lazy(() => AuthorSchema()),
             colors: v.array(v.string())
           })
         }
@@ -1287,7 +1287,7 @@ describe('valibot', () => {
         export function AuthorSchema(): v.GenericSchema<Author> {
           return v.object({
             __typename: v.optional(v.literal('Author')),
-            books: v.nullish(v.array(BookSchema())),
+            books: v.nullish(v.array(v.lazy(() => BookSchema()))),
             name: v.nullish(v.string())
           })
         }

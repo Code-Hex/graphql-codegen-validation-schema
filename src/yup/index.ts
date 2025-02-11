@@ -16,13 +16,14 @@ import type { Visitor } from '../visitor.js';
 import { resolveExternalModuleAndFn } from '@graphql-codegen/plugin-helpers';
 import { convertNameParts, DeclarationBlock, indent } from '@graphql-codegen/visitor-plugin-common';
 import {
+  isEnumType,
+  isScalarType,
   Kind,
 } from 'graphql';
 import { buildApi, formatDirectiveConfig } from '../directive.js';
 import {
   escapeGraphQLCharacters,
   InterfaceTypeDefinitionBuilder,
-  isInput,
   isListType,
   isNamedType,
   isNonNullType,
@@ -324,20 +325,20 @@ function generateFieldYupSchema(config: ValidationSchemaPluginConfig, visitor: V
     const formatted = formatDirectiveConfig(config.directives);
     gen += buildApi(formatted, field.directives);
   }
-  return indent(`${field.name.value}: ${maybeLazy(field.type, gen)}`, indentCount);
+  return indent(`${field.name.value}: ${maybeLazy(visitor, field.type, gen)}`, indentCount);
 }
 
 function generateFieldTypeYupSchema(config: ValidationSchemaPluginConfig, visitor: Visitor, type: TypeNode, parentType?: TypeNode): string {
   if (isListType(type)) {
     const gen = generateFieldTypeYupSchema(config, visitor, type.type, type);
     if (!isNonNullType(parentType))
-      return `yup.array(${maybeLazy(type.type, gen)}).defined().nullable()`;
+      return `yup.array(${maybeLazy(visitor, type.type, gen)}).defined().nullable()`;
 
-    return `yup.array(${maybeLazy(type.type, gen)}).defined()`;
+    return `yup.array(${maybeLazy(visitor, type.type, gen)}).defined()`;
   }
   if (isNonNullType(type)) {
     const gen = generateFieldTypeYupSchema(config, visitor, type.type, type);
-    return maybeLazy(type.type, gen);
+    return maybeLazy(visitor, type.type, gen);
   }
   if (isNamedType(type)) {
     const gen = generateNameNodeYupSchema(config, visitor, type.name);
@@ -380,12 +381,14 @@ function generateNameNodeYupSchema(config: ValidationSchemaPluginConfig, visitor
   }
 }
 
-function maybeLazy(type: TypeNode, schema: string): string {
-  if (isNamedType(type) && isInput(type.name.value)) {
-    // https://github.com/jquense/yup/issues/1283#issuecomment-786559444
-    return `yup.lazy(() => ${schema})`;
+function maybeLazy(visitor: Visitor, type: TypeNode, schema: string): string {
+  if (!isNamedType(type)) {
+    return schema;
   }
-  return schema;
+
+  const schemaType = visitor.getType(type.name.value);
+  const isComplexType = !isScalarType(schemaType) && !isEnumType(schemaType);
+  return isComplexType ? `yup.lazy(() => ${schema})` : schema;
 }
 
 function yup4Scalar(config: ValidationSchemaPluginConfig, visitor: Visitor, scalarName: string): string {

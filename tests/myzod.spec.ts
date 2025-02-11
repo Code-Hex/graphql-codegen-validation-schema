@@ -830,7 +830,7 @@ describe('myzod', () => {
         export function BookSchema(): myzod.Type<Book> {
           return myzod.object({
             __typename: myzod.literal('Book').optional(),
-            author: AuthorSchema().optional().nullable(),
+            author: myzod.lazy(() => AuthorSchema().optional().nullable()),
             title: myzod.string().optional().nullable()
           })
         }
@@ -838,7 +838,7 @@ describe('myzod', () => {
         export function AuthorSchema(): myzod.Type<Author> {
           return myzod.object({
             __typename: myzod.literal('Author').optional(),
-            books: myzod.array(BookSchema().nullable()).optional().nullable(),
+            books: myzod.array(myzod.lazy(() => BookSchema().nullable())).optional().nullable(),
             name: myzod.string().optional().nullable()
           })
         }
@@ -1075,7 +1075,7 @@ describe('myzod', () => {
         export function GeometrySchema(): myzod.Type<Geometry> {
           return myzod.object({
             __typename: myzod.literal('Geometry').optional(),
-            shape: ShapeSchema().optional().nullable()
+            shape: myzod.lazy(() => ShapeSchema().optional().nullable())
           })
         }
         "
@@ -1196,7 +1196,7 @@ describe('myzod', () => {
 
         export const GeometrySchema: myzod.Type<Geometry> = myzod.object({
             __typename: myzod.literal('Geometry').optional(),
-            shape: ShapeSchema.optional().nullable()
+            shape: myzod.lazy(() => ShapeSchema.optional().nullable())
         });
         "
       `)
@@ -1317,14 +1317,14 @@ describe('myzod', () => {
           "
           export function BookSchema(): myzod.Type<Book> {
             return myzod.object({
-              author: AuthorSchema().optional().nullable(),
+              author: myzod.lazy(() => AuthorSchema().optional().nullable()),
               title: myzod.string().optional().nullable()
             })
           }
 
           export function AuthorSchema(): myzod.Type<Author> {
             return myzod.object({
-              books: myzod.array(BookSchema().nullable()).optional().nullable(),
+              books: myzod.array(myzod.lazy(() => BookSchema().nullable())).optional().nullable(),
               name: myzod.string().optional().nullable()
             })
           }
@@ -1369,7 +1369,7 @@ describe('myzod', () => {
           export function BookSchema(): myzod.Type<Book> {
             return myzod.object({
               title: myzod.string(),
-              author: AuthorSchema()
+              author: myzod.lazy(() => AuthorSchema())
             })
           }
 
@@ -1377,7 +1377,7 @@ describe('myzod', () => {
             return myzod.object({
               __typename: myzod.literal('Textbook').optional(),
               title: myzod.string(),
-              author: AuthorSchema(),
+              author: myzod.lazy(() => AuthorSchema()),
               courses: myzod.array(myzod.string())
             })
           }
@@ -1386,7 +1386,7 @@ describe('myzod', () => {
             return myzod.object({
               __typename: myzod.literal('ColoringBook').optional(),
               title: myzod.string(),
-              author: AuthorSchema(),
+              author: myzod.lazy(() => AuthorSchema()),
               colors: myzod.array(myzod.string())
             })
           }
@@ -1394,7 +1394,7 @@ describe('myzod', () => {
           export function AuthorSchema(): myzod.Type<Author> {
             return myzod.object({
               __typename: myzod.literal('Author').optional(),
-              books: myzod.array(BookSchema()).optional().nullable(),
+              books: myzod.array(myzod.lazy(() => BookSchema())).optional().nullable(),
               name: myzod.string().optional().nullable()
             })
           }

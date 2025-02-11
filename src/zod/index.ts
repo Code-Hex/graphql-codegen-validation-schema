@@ -16,13 +16,14 @@ import type { Visitor } from '../visitor.js';
 import { resolveExternalModuleAndFn } from '@graphql-codegen/plugin-helpers';
 import { convertNameParts, DeclarationBlock, indent } from '@graphql-codegen/visitor-plugin-common';
 import {
+  isEnumType,
+  isScalarType,
   Kind,
 } from 'graphql';
 import { buildApi, formatDirectiveConfig } from '../directive.js';
 import {
   escapeGraphQLCharacters,
   InterfaceTypeDefinitionBuilder,
-  isInput,
   isListType,
   isNamedType,
   isNonNullType,
@@ -278,22 +279,22 @@ export class ZodSchemaVisitor extends BaseSchemaVisitor {
 
 function generateFieldZodSchema(config: ValidationSchemaPluginConfig, visitor: Visitor, field: InputValueDefinitionNode | FieldDefinitionNode, indentCount: number): string {
   const gen = generateFieldTypeZodSchema(config, visitor, field, field.type);
-  return indent(`${field.name.value}: ${maybeLazy(field.type, gen)}`, indentCount);
+  return indent(`${field.name.value}: ${maybeLazy(visitor, field.type, gen)}`, indentCount);
 }
 
 function generateFieldTypeZodSchema(config: ValidationSchemaPluginConfig, visitor: Visitor, field: InputValueDefinitionNode | FieldDefinitionNode, type: TypeNode, parentType?: TypeNode): string {
   if (isListType(type)) {
     const gen = generateFieldTypeZodSchema(config, visitor, field, type.type, type);
     if (!isNonNullType(parentType)) {
-      const arrayGen = `z.array(${maybeLazy(type.type, gen)})`;
+      const arrayGen = `z.array(${maybeLazy(visitor, type.type, gen)})`;
       const maybeLazyGen = applyDirectives(config, field, arrayGen);
       return `${maybeLazyGen}.nullish()`;
     }
-    return `z.array(${maybeLazy(type.type, gen)})`;
+    return `z.array(${maybeLazy(visitor, type.type, gen)})`;
   }
   if (isNonNullType(type)) {
     const gen = generateFieldTypeZodSchema(config, visitor, field, type.type, type);
-    return maybeLazy(type.type, gen);
+    return maybeLazy(visitor, type.type, gen);
   }
   if (isNamedType(type)) {
     const gen = generateNameNodeZodSchema(config, visitor, type.name);
@@ -374,11 +375,14 @@ function generateNameNodeZodSchema(config: ValidationSchemaPluginConfig, visitor
   }
 }
 
-function maybeLazy(type: TypeNode, schema: string): string {
-  if (isNamedType(type) && isInput(type.name.value))
-    return `z.lazy(() => ${schema})`;
+function maybeLazy(visitor: Visitor, type: TypeNode, schema: string): string {
+  if (!isNamedType(type)) {
+    return schema;
+  }
 
-  return schema;
+  const schemaType = visitor.getType(type.name.value);
+  const isComplexType = !isScalarType(schemaType) && !isEnumType(schemaType);
+  return isComplexType ? `z.lazy(() => ${schema})` : schema;
 }
 
 function zod4Scalar(config: ValidationSchemaPluginConfig, visitor: Visitor, scalarName: string): string {

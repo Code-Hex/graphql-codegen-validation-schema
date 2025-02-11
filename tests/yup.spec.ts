@@ -760,7 +760,7 @@ describe('yup', () => {
         export function BookSchema(): yup.ObjectSchema<Book> {
           return yup.object({
             __typename: yup.string<'Book'>().optional(),
-            author: AuthorSchema().nullable().optional(),
+            author: yup.lazy(() => AuthorSchema().nullable()).optional(),
             title: yup.string().defined().nullable().optional()
           })
         }
@@ -768,7 +768,7 @@ describe('yup', () => {
         export function Book2Schema(): yup.ObjectSchema<Book2> {
           return yup.object({
             __typename: yup.string<'Book2'>().optional(),
-            author: AuthorSchema().nonNullable(),
+            author: yup.lazy(() => AuthorSchema().nonNullable()),
             title: yup.string().defined().nonNullable()
           })
         }
@@ -776,7 +776,7 @@ describe('yup', () => {
         export function AuthorSchema(): yup.ObjectSchema<Author> {
           return yup.object({
             __typename: yup.string<'Author'>().optional(),
-            books: yup.array(BookSchema().nullable()).defined().nullable().optional(),
+            books: yup.array(yup.lazy(() => BookSchema().nullable())).defined().nullable().optional(),
             name: yup.string().defined().nullable().optional()
           })
         }
@@ -991,7 +991,7 @@ describe('yup', () => {
         export function GeometrySchema(): yup.ObjectSchema<Geometry> {
           return yup.object({
             __typename: yup.string<'Geometry'>().optional(),
-            shape: ShapeSchema().nullable().optional()
+            shape: yup.lazy(() => ShapeSchema().nullable()).optional()
           })
         }
         "
@@ -1132,7 +1132,7 @@ describe('yup', () => {
 
         export const GeometrySchema: yup.ObjectSchema<Geometry> = yup.object({
             __typename: yup.string<'Geometry'>().optional(),
-            shape: ShapeSchema.nullable().optional()
+            shape: yup.lazy(() => ShapeSchema.nullable()).optional()
         });
         "
       `)
@@ -1280,21 +1280,21 @@ describe('yup', () => {
 
           export function BookSchema(): yup.ObjectSchema<Book> {
             return yup.object({
-              author: AuthorSchema().nullable().optional(),
+              author: yup.lazy(() => AuthorSchema().nullable()).optional(),
               title: yup.string().defined().nullable().optional()
             })
           }
 
           export function Book2Schema(): yup.ObjectSchema<Book2> {
             return yup.object({
-              author: AuthorSchema().nonNullable(),
+              author: yup.lazy(() => AuthorSchema().nonNullable()),
               title: yup.string().defined().nonNullable()
             })
           }
 
           export function AuthorSchema(): yup.ObjectSchema<Author> {
             return yup.object({
-              books: yup.array(BookSchema().nullable()).defined().nullable().optional(),
+              books: yup.array(yup.lazy(() => BookSchema().nullable())).defined().nullable().optional(),
               name: yup.string().defined().nullable().optional()
             })
           }
@@ -1349,7 +1349,7 @@ describe('yup', () => {
           export function BookSchema(): yup.ObjectSchema<Book> {
             return yup.object({
               title: yup.string().defined().nonNullable(),
-              author: AuthorSchema().nonNullable()
+              author: yup.lazy(() => AuthorSchema().nonNullable())
             })
           }
 
@@ -1357,7 +1357,7 @@ describe('yup', () => {
             return yup.object({
               __typename: yup.string<'Textbook'>().optional(),
               title: yup.string().defined().nonNullable(),
-              author: AuthorSchema().nonNullable(),
+              author: yup.lazy(() => AuthorSchema().nonNullable()),
               courses: yup.array(yup.string().defined().nonNullable()).defined()
             })
           }
@@ -1366,7 +1366,7 @@ describe('yup', () => {
             return yup.object({
               __typename: yup.string<'ColoringBook'>().optional(),
               title: yup.string().defined().nonNullable(),
-              author: AuthorSchema().nonNullable(),
+              author: yup.lazy(() => AuthorSchema().nonNullable()),
               colors: yup.array(yup.string().defined().nonNullable()).defined()
             })
           }
@@ -1374,7 +1374,7 @@ describe('yup', () => {
           export function AuthorSchema(): yup.ObjectSchema<Author> {
             return yup.object({
               __typename: yup.string<'Author'>().optional(),
-              books: yup.array(BookSchema().nonNullable()).defined().nullable().optional(),
+              books: yup.array(yup.lazy(() => BookSchema().nonNullable())).defined().nullable().optional(),
               name: yup.string().defined().nullable().optional()
             })
           }
