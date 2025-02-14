@@ -120,7 +120,7 @@ export function UserSchema(): myzod.Type<User> {
     createdAt: definedNonNullAnySchema.optional().nullable(),
     email: myzod.string().optional().nullable(),
     id: myzod.string().optional().nullable(),
-    kind: UserKindSchema().optional().nullable(),
+    kind: myzod.lazy(() => UserKindSchema().optional().nullable()),
     name: myzod.string().optional().nullable(),
     password: myzod.string().optional().nullable(),
     updatedAt: definedNonNullAnySchema.optional().nullable()
